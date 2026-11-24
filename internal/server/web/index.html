@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08090C">
+  <title>AIRBEAM // LAN DROP</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Top Industrial Telemetry Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="status-led" id="sse-led" title="Live SSE Link"></span>
+      <span class="brand-name">AIRBEAM</span>
+      <span class="badge badge-cyan">LAN</span>
+    </div>
+
+    <div class="telemetry-strip">
+      <div class="telemetry-pill mono" id="lan-ip" title="Active Local Network Address">--.--.--.--</div>
+      <div class="telemetry-pill mono" id="device-count" title="Connected Devices">
+        <span class="dot-emerald"></span>
+        <span id="device-num">1</span> ONLINE
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-show-qr" aria-label="Show QR Code">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <path d="M14 14h3v3h-3zM20 14h1v3h-1zM14 20h3v1h-3zM19 19h2v2h-2z"></path>
+        </svg>
+        <span>QR</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 4-Digit Security PIN Gate -->
+  <section class="pin-overlay hidden" id="pin-overlay" aria-modal="true" role="dialog" aria-labelledby="pin-title">
+    <div class="pin-card">
+      <div class="pin-header">
+        <span class="badge badge-amber">SECURED SESSION</span>
+        <h1 id="pin-title">ENTER 4-DIGIT PIN</h1>
+        <p class="muted">Check the AirBeam terminal on your computer or scan the QR code to auto-authenticate.</p>
+      </div>
+      <form id="pin-form" autocomplete="off">
+        <input
+          type="tel"
+          inputmode="numeric"
+          pattern="[0-9]{4}"
+          maxlength="4"
+          id="pin-input"
+          class="pin-input mono"
+          placeholder="0000"
+          aria-label="4-digit PIN"
+          required
+        >
+        <div class="pin-error mono hidden" id="pin-error">INVALID PIN — RETRY</div>
+        <button type="submit" class="btn btn-amber btn-full">UNLOCK LINK</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Main Workspace Grid -->
+  <main class="workspace hidden" id="workspace">
+    <!-- Left Column: Upload & Files -->
+    <div class="col-primary">
+      <!-- Drop / Tap Upload Module -->
+      <section class="panel" aria-labelledby="upload-heading">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="index-tag mono">01</span>
+            <h2 id="upload-heading">TRANSMIT FILES</h2>
+          </div>
+          <span class="mono muted-sm">FULL-RES · ZERO COMPRESSION</span>
+        </div>
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Select or drop files to upload">
+          <input type="file" id="file-input" multiple hidden>
+          <div class="dropzone-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M12 16V4"></path>
+              <path d="M7 9l5-5 5 5"></path>
+              <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"></path>
+            </svg>
+          </div>
+          <div class="dropzone-label">TAP TO SELECT OR DROP FILES</div>
+          <div class="dropzone-sub mono">PHOTOS · 4K VIDEO · ARCHIVES · MULTI-GB STREAMING</div>
+        </div>
+
+        <!-- Live Upload Telemetry Panel -->
+        <div class="transfer-box hidden" id="transfer-box">
+          <div class="transfer-head">
+            <span class="transfer-filename mono" id="transfer-filename">Preparing...</span>
+            <span class="transfer-pct mono" id="transfer-pct">0.0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="transfer-metrics">
+            <div class="metric-cell">
+              <span class="metric-label">RATE</span>
+              <span class="metric-val mono text-cyan" id="metric-speed">0.0 MB/s</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-label">TRANSFERRED</span>
+              <span class="metric-val mono" id="metric-bytes">0 B / 0 B</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-label">ETA</span>
+              <span class="metric-val mono text-emerald" id="metric-eta">--:--</span>
+            </div>
+            <button type="button" class="btn btn-danger-ghost mono" id="btn-cancel-upload">ABORT</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Shared Files Feed -->
+      <section class="panel" aria-labelledby="files-heading">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="index-tag mono">02</span>
+            <h2 id="files-heading">SHARED FILES</h2>
+            <span class="count-pill mono" id="files-count">0</span>
+          </div>
+          <div class="filter-tabs" role="tablist" aria-label="Filter files by source">
+            <button type="button" class="tab-btn active mono" data-filter="all" role="tab" aria-selected="true">ALL</button>
+            <button type="button" class="tab-btn mono" data-filter="pc" role="tab" aria-selected="false">READY ON PC</button>
+            <button type="button" class="tab-btn mono" data-filter="phone" role="tab" aria-selected="false">UPLOADED</button>
+          </div>
+        </div>
+
+        <div class="files-list" id="files-list">
+          <div class="empty-state mono">NO FILES TRANSFERRED YET</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Live 2-Way Clipboard Beam -->
+    <aside class="col-secondary">
+      <section class="panel panel-clipboard" aria-labelledby="clip-heading">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="index-tag mono">03</span>
+            <h2 id="clip-heading">CLIPBOARD BEAM</h2>
+          </div>
+          <span class="badge badge-emerald mono">LIVE SYNC</span>
+        </div>
+
+        <form id="clip-form" class="clip-composer">
+          <textarea
+            id="clip-input"
+            class="clip-textarea"
+            rows="3"
+            placeholder="Paste any URL, command, or text snippet to beam instantaneously..."
+            aria-label="Clipboard text to beam"
+          ></textarea>
+          <div class="clip-actions">
+            <span class="mono muted-sm">INSTANT SSE BROADCAST</span>
+            <button type="submit" class="btn btn-cyan">BEAM TEXT</button>
+          </div>
+        </form>
+
+        <div class="clip-feed" id="clip-feed">
+          <div class="empty-state mono">CLIPBOARD CHANNEL IDLE</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- QR Code Modal -->
+  <div class="modal-backdrop hidden" id="qr-modal" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="qr-modal-title" class="mono">SCAN TO CONNECT</h3>
+        <button type="button" class="btn-icon" id="btn-close-qr" aria-label="Close QR Modal">&times;</button>
+      </div>
+      <div class="qr-frame">
+        <img id="qr-image" src="" alt="AirBeam LAN QR Code" width="240" height="240">
+      </div>
+      <div class="qr-url-row">
+        <code class="mono qr-url" id="qr-url-text">http://...</code>
+        <button type="button" class="btn btn-outline mono" id="btn-copy-url">COPY</button>
+      </div>
+      <p class="muted-sm qr-hint">Ensure your phone and computer are on the same Wi-Fi network.</p>
+    </div>
+  </div>
+
+  <!-- Subtle Toast Notification -->
+  <div class="toast mono hidden" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
